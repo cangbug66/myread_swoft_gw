@@ -1,0 +1,55 @@
+version: '3.4'
+services:
+  swoft:
+    image: swoft/swoft
+#    for local develop
+    command: php -S 127.0.0.1:13300
+    container_name: swoft-srv-myread-gw
+    environment:
+      - APP_ENV=dev
+      - TIMEZONE=Asia/Shanghai
+    restart: always
+    depends_on:
+#      - mysql
+      - redis
+    ports:
+      - "38306:18306"
+      - "38307:18307"
+      - "38308:18308"
+    volumes:
+      - ./:/var/www/swoft
+      # - ./runtime/ng-conf:/etc/nginx
+      # - ./runtime/logs:/var/log
+
+#  mysql:
+#    image: mysql
+#    container_name: mysql-srv-myread-gw
+#    environment:
+#      - MYSQL_ROOT_PASSWORD=123456
+#    ports:
+#      - "33306:3306"
+#    volumes:
+#      - ./runtime/data/mysql:/var/lib/mysql
+#    restart: always
+
+  redis:
+    container_name: redis-srv-myread-gw
+    image: redis:4-alpine
+    ports:
+      - "36379:6379"
+    sysctls:
+      net.core.somaxconn: 65535
+    restart: always
+
+  consul:
+    container_name: cs
+    image: consul:latest
+    ports:
+      - "8500:8500"
+      - "8300:8300"
+    volumes:
+#      - ./runtime/data/consul/data:/consul/data
+      - /home/vagrant/consulData:/consulData
+    privileged: true
+    command: agent -data-dir=/consulData -server -bootstrap -client 0.0.0.0 -ui
+    restart: always
